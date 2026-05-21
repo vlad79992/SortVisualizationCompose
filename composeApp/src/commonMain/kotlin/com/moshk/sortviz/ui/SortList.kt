@@ -34,10 +34,12 @@ fun ThreePaneScaffoldPaneScope.SortListPane(
     modifier: Modifier = Modifier
 ) {
     AnimatedPane(modifier = modifier) {
-        SortList(
-            onItemSelected,
-            modifier
-        )
+        Surface(modifier = Modifier.fillMaxSize()) {
+            SortList(
+                onItemSelected,
+                modifier
+            )
+        }
     }
 }
 

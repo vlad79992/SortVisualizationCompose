@@ -29,12 +29,14 @@ fun ThreePaneScaffoldPaneScope.SortInfoPane(
     modifier: Modifier = Modifier
 ) {
     AnimatedPane(modifier = modifier) {
-        SortInfo(
-            onBack,
-            onHideExtra,
-            isBackVisible,
-            modifier
-        )
+        Surface(modifier = Modifier.fillMaxSize()) {
+            SortInfo(
+                onBack,
+                onHideExtra,
+                isBackVisible,
+                modifier
+            )
+        }
     }
 }
 

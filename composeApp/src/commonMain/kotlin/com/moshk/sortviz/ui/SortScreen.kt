@@ -40,13 +40,15 @@ fun ThreePaneScaffoldPaneScope.SortScreenPane(
     modifier: Modifier = Modifier
 ) {
     AnimatedPane(modifier = modifier) {
-        SortScreen(
-            shouldShowExtraButton,
-            onShowExtra,
-            onBack,
-            isBackVisible,
-            modifier
-        )
+        Surface(modifier = Modifier.fillMaxSize()) {
+            SortScreen(
+                shouldShowExtraButton,
+                onShowExtra,
+                onBack,
+                isBackVisible,
+                modifier
+            )
+        }
     }
 }
 
