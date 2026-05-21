@@ -8,13 +8,18 @@ import androidx.compose.material3.adaptive.layout.PaneAdaptedValue
 import androidx.compose.material3.adaptive.layout.PaneScaffoldDirective
 import androidx.compose.material3.adaptive.layout.SupportingPaneScaffold
 import androidx.compose.material3.adaptive.layout.SupportingPaneScaffoldRole
+import androidx.compose.material3.adaptive.layout.ThreePaneScaffoldRole
+import androidx.compose.material3.adaptive.layout.ThreePaneScaffoldValue
 import androidx.compose.material3.adaptive.navigation.ThreePaneScaffoldNavigator
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.material3.adaptive.navigation.rememberSupportingPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.navigationevent.NavigationEventDispatcher
@@ -33,54 +38,60 @@ fun SortVizAndInfoScaffold(
     parentNavigator: ThreePaneScaffoldNavigator<Any>,
     modifier: Modifier = Modifier
 ) {
-    val supportingNavigator = rememberSupportingPaneScaffoldNavigator()
+    val navigator = rememberSupportingPaneScaffoldNavigator()
     val scope = rememberCoroutineScope()
-    val supportingNavEventState = rememberNavigationEventState(NavigationEventInfo.None)
 
-    val isInfoVisible = supportingNavigator.scaffoldValue[SupportingPaneScaffoldRole.Supporting] == PaneAdaptedValue.Expanded
+    var isSupportingForceHidden by remember { mutableStateOf(false) }
 
-    // НОВОЕ: Проверяем, видна ли главная панель.
-    // Если она видна, значит экран большой и панели расположены рядом (side-by-side).
-    // Если не видна, значит экран маленький и Info открыта на весь экран.
-    val isMainPaneVisible = supportingNavigator.scaffoldValue[SupportingPaneScaffoldRole.Main] == PaneAdaptedValue.Expanded
+    val isMainVisible = navigator.scaffoldValue[SupportingPaneScaffoldRole.Main] == PaneAdaptedValue.Expanded
+    val isActuallyVisible = navigator.scaffoldValue[SupportingPaneScaffoldRole.Supporting] == PaneAdaptedValue.Expanded && !isSupportingForceHidden
 
-    if (isInfoVisible) {
-        NavigationBackHandler(
-            state = supportingNavEventState,
-            isBackEnabled = true,
-            onBackCompleted = {
-                scope.launch { supportingNavigator.navigateBack() }
-            }
-        )
-    }
+    NavigationBackHandler(
+        state = rememberNavigationEventState(NavigationEventInfo.None),
+        isBackEnabled = isActuallyVisible && !isMainVisible,
+        onBackCompleted = { scope.launch { navigator.navigateBack() } }
+    )
 
     SupportingPaneScaffold(
         modifier = modifier,
-        directive = supportingNavigator.scaffoldDirective,
-        value = supportingNavigator.scaffoldValue,
+        directive = navigator.scaffoldDirective,
+        value = if (isSupportingForceHidden) {
+            ThreePaneScaffoldValue(
+                primary = PaneAdaptedValue.Expanded,
+                secondary = PaneAdaptedValue.Hidden,
+                tertiary = PaneAdaptedValue.Hidden
+            )
+        } else {
+            navigator.scaffoldValue
+        },
         mainPane = {
             SortScreenPane(
                 onShowExtra = {
-                    scope.launch { supportingNavigator.navigateTo(SupportingPaneScaffoldRole.Supporting) }
+                    isSupportingForceHidden = false
+                    scope.launch { navigator.navigateTo(SupportingPaneScaffoldRole.Supporting) }
                 },
                 onBack = {
                     if (parentNavigator.canNavigateBack()) {
                         scope.launch { parentNavigator.navigateBack() }
+                    } else {
+                        scope.launch { parentNavigator.navigateTo(ThreePaneScaffoldRole.Primary) }
                     }
                 },
-                isBackVisible = true,
-                shouldShowExtraButton = true
+                isBackVisible = !currentWindowAdaptiveInfo().windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND),
+                shouldShowExtraButton = !isActuallyVisible
             )
         },
         supportingPane = {
             SortInfoPane(
-                onBack = {
-                    scope.launch { supportingNavigator.navigateBack() }
-                },
+                onBack = { scope.launch { navigator.navigateBack() } },
                 onHideExtra = {
-                    scope.launch { supportingNavigator.navigateBack() }
+                    if (isMainVisible) {
+                        isSupportingForceHidden = true
+                    } else {
+                        scope.launch { navigator.navigateBack() }
+                    }
                 },
-                isBackVisible = !isMainPaneVisible
+                isBackVisible = !isMainVisible
             )
         }
     )
@@ -90,32 +101,22 @@ fun SortVizAndInfoScaffold(
 @PreviewScreenSizes
 @Composable
 fun PreviewSortVizAndInfoScaffoldLight() {
-    val windowAdaptiveInfo = currentWindowAdaptiveInfo()
-
-    val maxPartitions = when {
-        windowAdaptiveInfo.windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND) -> 3
-        else -> 2
-    }
-
-    val directive = PaneScaffoldDirective.Default.copy(
-        maxHorizontalPartitions = maxPartitions
-    )
-    val parentNavigator = rememberListDetailPaneScaffoldNavigator(scaffoldDirective = directive)
-
-    // Создаем мок NavigationEventDispatcherOwner специально для Preview
-    val dispatcherOwner = remember {
-        object : NavigationEventDispatcherOwner {
-            override val navigationEventDispatcher = NavigationEventDispatcher()
-        }
-    }
-
-    // Предоставляем его через CompositionLocalProvider
     CompositionLocalProvider(
-        LocalNavigationEventDispatcherOwner provides dispatcherOwner
+        LocalNavigationEventDispatcherOwner provides remember {
+            object : NavigationEventDispatcherOwner {
+                override val navigationEventDispatcher = NavigationEventDispatcher()
+            }
+        }
     ) {
         Surface(modifier = Modifier.fillMaxSize()) {
             SortVizAndInfoScaffold(
-                parentNavigator = parentNavigator
+                parentNavigator = rememberListDetailPaneScaffoldNavigator(
+                    scaffoldDirective = PaneScaffoldDirective.Default.copy(
+                        maxHorizontalPartitions = if (
+                            currentWindowAdaptiveInfo().windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)
+                        ) 3 else 2
+                    )
+                )
             )
         }
     }
