@@ -25,56 +25,36 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun ListAndSortScaffold() {
-    val windowAdaptiveInfo = currentWindowAdaptiveInfo()
-
-    val maxPartitions = when {
-        windowAdaptiveInfo.windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND) -> 2
-        else -> 1
-    }
-
-    val directive = PaneScaffoldDirective.Default.copy(
-        maxHorizontalPartitions = maxPartitions
+    val scope = rememberCoroutineScope()
+    val navigator = rememberListDetailPaneScaffoldNavigator(
+        scaffoldDirective = PaneScaffoldDirective.Default.copy(
+            maxHorizontalPartitions = if (
+                currentWindowAdaptiveInfo().windowSizeClass.isWidthAtLeastBreakpoint(
+                    WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND
+                )
+            ) 2 else 1
+        )
     )
 
-    val listDetailNavigator = rememberListDetailPaneScaffoldNavigator(scaffoldDirective = directive)
-    val scope = rememberCoroutineScope()
-
-    // Создаем УНИКАЛЬНЫЙ state для этого уровня навигации
-    // NavigationEventInfo.None означает, что у нас нет специфичных данных для этого хендлера,
-    // но он нужен для корректной работы системы предиктивного бэка.
-    val listNavEventState = rememberNavigationEventState(NavigationEventInfo.None)
-
     NavigationBackHandler(
-        state = listNavEventState,
-        isBackEnabled = listDetailNavigator.canNavigateBack(),
-        onBackCancelled = {
-            // Жест отменен
-        },
-        onBackCompleted = {
-            scope.launch {
-                listDetailNavigator.navigateBack()
-            }
-        }
+        state = rememberNavigationEventState(NavigationEventInfo.None),
+        isBackEnabled = navigator.canNavigateBack(),
+        onBackCompleted = { scope.launch { navigator.navigateBack() } }
     )
 
     ListDetailPaneScaffold(
-        directive = listDetailNavigator.scaffoldDirective,
-        value = listDetailNavigator.scaffoldValue,
+        directive = navigator.scaffoldDirective,
+        value = navigator.scaffoldValue,
         listPane = {
             SortListPane(
-                onItemSelected = {
-                    scope.launch {
-                        listDetailNavigator.navigateTo(ListDetailPaneScaffoldRole.Detail)
-                    }
-                }
+                onItemSelected = { scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Detail) } }
             )
         },
         detailPane = {
-            // Вложенный скэффолд получает свой собственный контекст
-            AnimatedPane (modifier = Modifier.fillMaxSize()) {
+            AnimatedPane(modifier = Modifier.fillMaxSize()) {
                 SortVizAndInfoScaffold(
                     modifier = Modifier.fillMaxSize(),
-                    parentNavigator = listDetailNavigator
+                    parentNavigator = navigator
                 )
             }
         }
@@ -85,15 +65,12 @@ fun ListAndSortScaffold() {
 @PreviewScreenSizes
 @Composable
 fun PreviewListAndSortScaffoldLight() {
-    // Создаем мок NavigationEventDispatcherOwner специально для Preview
-    val dispatcherOwner = remember {
-        object : NavigationEventDispatcherOwner {
-            override val navigationEventDispatcher = NavigationEventDispatcher()
-        }
-    }
-
     CompositionLocalProvider(
-        LocalNavigationEventDispatcherOwner provides dispatcherOwner
+        LocalNavigationEventDispatcherOwner provides remember {
+            object : NavigationEventDispatcherOwner {
+                override val navigationEventDispatcher = NavigationEventDispatcher()
+            }
+        }
     ) {
         Surface(modifier = Modifier.fillMaxSize()) {
             ListAndSortScaffold()

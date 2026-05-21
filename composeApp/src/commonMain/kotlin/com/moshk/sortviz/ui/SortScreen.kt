@@ -24,11 +24,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.moshk.sortviz.ui.theme.SortAppTheme
+import kotlin.random.Random
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
@@ -61,12 +60,12 @@ fun SortScreen(
     modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .safeContentPadding()
             .padding(16.dp),
     ) {
-        Row {
+        Row (Modifier.height(64.dp)) {
             if (isBackVisible) {
                 Button(
                     onClick = onBack,
@@ -102,11 +101,18 @@ fun SortScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Box(modifier =
-                Modifier
+            val arrayLength = 10
+            val array = Array(arrayLength) { i -> i + 1}
+            array.shuffle()
+            ArrayVisualizer(
+                array = array,
+                selected = Random.nextInt(0, 10) to Random.nextInt(0, 10),
+                modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .background(Color.Magenta))
+                    //.background(Color.Magenta)
+            )
+
             Row() {
                 Button(
                     onClick = {},
