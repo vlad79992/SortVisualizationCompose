@@ -103,10 +103,11 @@ fun SortScreen(
         ) {
             val arrayLength = 10
             val array = Array(arrayLength) { i -> i + 1}
-            array.shuffle()
+            val random = Random(42)
+            array.shuffle(random)
             ArrayVisualizer(
                 array = array,
-                selected = Random.nextInt(0, 10) to Random.nextInt(0, 10),
+                selected = random.nextInt(0, 10) to random.nextInt(0, 10),
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
