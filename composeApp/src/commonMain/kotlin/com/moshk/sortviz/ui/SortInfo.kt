@@ -4,10 +4,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -18,6 +22,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.moshk.sortviz.ui.icons.arrow_back
+import com.moshk.sortviz.ui.icons.visibility_off
 import com.moshk.sortviz.ui.theme.SortAppTheme
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
@@ -48,21 +54,32 @@ fun SortInfo(
     modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+            .padding(8.dp)
+            .safeContentPadding()
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(16.dp, 32.dp),
-            horizontalArrangement = Arrangement.Start
-        ) {
+        Row (Modifier.height(64.dp)) {
             if (isBackVisible) {
-                Button(onClick = onBack) {
-                    Text("Назад")
+                Button(
+                    onClick = onBack,
+                    modifier = Modifier.fillMaxHeight()
+                ) {
+                    Icon(
+                        arrow_back,
+                        "назад"
+                    )
                 }
             } else {
-                Button(onClick = onHideExtra) {
-                    Text("Скрыть")
+                Button(
+                    onClick = onHideExtra,
+                    modifier = Modifier.fillMaxHeight()
+                ) {
+                    Icon(
+                        visibility_off,
+                        "скрыть"
+                    )
                 }
             }
         }

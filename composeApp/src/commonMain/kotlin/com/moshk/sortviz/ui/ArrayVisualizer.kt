@@ -11,7 +11,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Color.Companion.Magenta
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
@@ -26,10 +25,8 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 import com.moshk.sortviz.ui.theme.SortAppTheme
 import kotlin.math.PI
-import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cos
-import kotlin.math.hypot
 import kotlin.math.sin
 import kotlin.math.sqrt
 import kotlin.random.Random
@@ -37,10 +34,13 @@ import kotlin.random.Random
 @Composable
 fun ArrayVisualizer(
     array: Array<Int>,
-    selected: Pair<Int, Int> = -1 to -1,
-    barsColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
-    selectedColor: Color = MaterialTheme.colorScheme.error,
+    barsColor: Color = MaterialTheme.colorScheme.inverseSurface,
+    comparing: Pair<Int, Int>? = null,
+    comparingColor: Color = MaterialTheme.colorScheme.error,
+    selected: Set<Int> = emptySet(),
+    selectedColor: Color = MaterialTheme.colorScheme.primary,
     textSize: TextUnit = MaterialTheme.typography.bodyMedium.fontSize,
+    textColor: Color = MaterialTheme.colorScheme.onSurface,
     modifier: Modifier = Modifier
 ) {
     val textMeasurer = rememberTextMeasurer()
@@ -51,11 +51,14 @@ fun ArrayVisualizer(
         Canvas(modifier = Modifier.fillMaxSize()) {
             drawBarChart(
                 array,
-                selected,
-                textMeasurer,
                 barsColor,
+                comparing,
+                comparingColor,
+                selected,
                 selectedColor,
-                textSize
+                textSize,
+                textColor,
+                textMeasurer
             )
         }
     }
@@ -63,11 +66,14 @@ fun ArrayVisualizer(
 
 fun DrawScope.drawBarChart(
     array: Array<Int>,
-    selected: Pair<Int, Int>,
-    textMeasurer: TextMeasurer,
     barsColor: Color,
+    comparing: Pair<Int, Int>?,
+    comparingColor: Color,
+    selected: Set<Int>,
     selectedColor: Color,
-    textSize: TextUnit
+    textSize: TextUnit,
+    textColor: Color,
+    textMeasurer: TextMeasurer
 ) {
     val width = size.width
     val height = size.height
@@ -77,38 +83,54 @@ fun DrawScope.drawBarChart(
     val barHeightMultiplier = height / (maxValue + 2)
 
     for (i in array.indices) {
-        drawBar(array, selected, textMeasurer, barsColor, selectedColor,
-            textSize, barWidth, barHeightMultiplier, maxValue, i)
+        drawBar(
+            array,
+            barsColor,
+            comparing,
+            comparingColor,
+            selected,
+            selectedColor,
+            textSize,
+            textColor,
+            textMeasurer,
+            barWidth,
+            barHeightMultiplier,
+            maxValue,
+            current = i
+        )
     }
 
 
-    if (selected.first != selected.second &&
-        selected.first in 0..array.size &&
-        selected.second in 0..array.size) {
-        drawArrow(array, selected, selectedColor,
+    if (comparing != null &&
+        comparing.first  in 0..array.size &&
+        comparing.second in 0..array.size) {
+        drawArrow(array, comparing, comparingColor,
                 barWidth, barHeightMultiplier, maxValue)
         }
 }
 
 fun DrawScope.drawBar(
     array: Array<Int>,
-    selected: Pair<Int, Int>,
-    textMeasurer: TextMeasurer,
     barsColor: Color,
+    comparing: Pair<Int, Int>?,
+    comparingColor: Color,
+    selected: Set<Int>,
     selectedColor: Color,
     textSize: TextUnit,
+    textColor: Color,
+    textMeasurer: TextMeasurer,
     barWidth: Float,
     barHeightMultiplier: Float,
     maxValue: Int,
     current: Int
 ) {
-    // ТЕКСТ (РАЗМЕР СТОЛБЦА)
+    // ТЕКСТ (ЗНАЧЕНИЕ СТОЛБЦА)
     val text = array[current].toString()
     val textSize = textMeasurer.measure(
         text,
         style = TextStyle(
             fontSize = textSize,
-            color = barsColor,
+            color = textColor,
         )
     ).size
     drawText(
@@ -120,12 +142,14 @@ fun DrawScope.drawBar(
         ),
         style = TextStyle(
             fontSize = 18.sp,
-            color = barsColor,
+            color = textColor,
         )
     )
     // СТОЛБЕЦ
     drawRect(
-        color = if (selected.first == current || selected.second == current) {
+        color = if (comparing?.first == current || comparing?.second == current) {
+            comparingColor
+        } else if (current in selected){
             selectedColor
         } else {
             barsColor
@@ -164,19 +188,19 @@ fun DrawScope.drawArrow(
         style = Stroke(width = 8f, cap = StrokeCap.Square)
     )
 
-//    drawPath(
-//        path = Path().apply {
-//            moveTo(start.x, start.y)
-//            lineTo(control.x, control.y)
-//            lineTo(end.x, end.y)
-//        },
-//        color = arrowColor,
-//        style = Stroke(
-//            width = 4f,
-//            cap = StrokeCap.Square,
-//            pathEffect = PathEffect.dashPathEffect(floatArrayOf(25f, 25f))
-//        )
-//    )
+    drawPath(
+        path = Path().apply {
+            moveTo(start.x, start.y)
+            lineTo(control.x, control.y)
+            lineTo(end.x, end.y)
+        },
+        color = arrowColor,
+        style = Stroke(
+            width = 4f,
+            cap = StrokeCap.Square,
+            pathEffect = PathEffect.dashPathEffect(floatArrayOf(25f, 25f))
+        )
+    )
 
     drawTangentArrow(
         start = start, control, 50f, 30f, arrowColor
@@ -235,13 +259,17 @@ private fun getBarTop(
 @Composable
 @Preview
 fun PreviewSortVisualizerLight() {
-    val random = Random(42)
-    val array = Array(10) { i -> i + 1}
-    array.shuffle(random)
     Surface(modifier = Modifier.fillMaxSize()) {
+        val random = Random(42)
+        val arrayLength = 10
+        val array = Array(arrayLength) { i -> i + 1}
+        array.shuffle(random)
+        val comparing = random.nextInt(0, 10) to random.nextInt(0, 10)
+        val selected = Array(2) { random.nextInt(0, 10) }.toSet()
         ArrayVisualizer(
-            array,
-            selected = random.nextInt(0, 10) to random.nextInt(0, 10)
+            array = array,
+            comparing = comparing,
+            selected = selected
         )
     }
 }
