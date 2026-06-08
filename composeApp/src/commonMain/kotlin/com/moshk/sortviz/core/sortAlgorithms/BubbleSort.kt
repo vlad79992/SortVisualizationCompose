@@ -34,7 +34,8 @@ class BubbleSortAlgorithm : SortingAlgorithm<Array<Int>>() {
                     yield(SortStep(
                         state = arr.copyOf(),
                         comparingIndices = SortIndex.Single(j) to SortIndex.Single(j + 1),
-                        selectedIndices = sortedIndices.toSet()
+                        selectedIndices = sortedIndices.toSet(),
+                        swappingIndices = setOf(SortIndex.Single(j) to SortIndex.Single(j + 1))
                     ))
                 }
             }

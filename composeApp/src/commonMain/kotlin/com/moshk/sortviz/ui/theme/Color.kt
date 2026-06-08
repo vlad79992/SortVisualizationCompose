@@ -1,4 +1,4 @@
-package com.moshk.scheduleapp.ui.theme
+package com.moshk.sortviz.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

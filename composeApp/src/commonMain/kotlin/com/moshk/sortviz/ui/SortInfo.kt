@@ -1,12 +1,10 @@
 package com.moshk.sortviz.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
@@ -16,12 +14,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.ThreePaneScaffoldPaneScope
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.window.core.layout.WindowSizeClass
 import com.moshk.sortviz.ui.icons.arrow_back
 import com.moshk.sortviz.ui.icons.visibility_off
 import com.moshk.sortviz.ui.theme.SortAppTheme
@@ -31,7 +31,6 @@ import com.moshk.sortviz.ui.theme.SortAppTheme
 fun ThreePaneScaffoldPaneScope.SortInfoPane(
     onBack: () -> Unit,
     onHideExtra: () -> Unit,
-    isBackVisible: Boolean,
     modifier: Modifier = Modifier
 ) {
     AnimatedPane(modifier = modifier) {
@@ -39,7 +38,6 @@ fun ThreePaneScaffoldPaneScope.SortInfoPane(
             SortInfo(
                 onBack,
                 onHideExtra,
-                isBackVisible,
                 modifier
             )
         }
@@ -50,9 +48,12 @@ fun ThreePaneScaffoldPaneScope.SortInfoPane(
 fun SortInfo(
     onBack: () -> Unit,
     onHideExtra: () -> Unit,
-    isBackVisible: Boolean,
     modifier: Modifier = Modifier
 ) {
+    val isBackVisible = currentWindowAdaptiveInfo().windowSizeClass.isWidthAtLeastBreakpoint(
+        WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND
+    )
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -61,7 +62,7 @@ fun SortInfo(
             .safeContentPadding()
     ) {
         Row (Modifier.height(64.dp)) {
-            if (isBackVisible) {
+            if (!isBackVisible) {
                 Button(
                     onClick = onBack,
                     modifier = Modifier.fillMaxHeight()
@@ -98,7 +99,6 @@ fun PreviewSortInfoLight() {
         SortInfo(
             {},
             {},
-            false,
             Modifier
         )
     }

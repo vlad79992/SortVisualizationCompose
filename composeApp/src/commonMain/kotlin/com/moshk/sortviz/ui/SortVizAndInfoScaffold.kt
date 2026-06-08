@@ -67,6 +67,7 @@ fun SortVizAndInfoScaffold(
         mainPane = {
             SortScreenPane(
                 onShowExtra = {
+                    @Suppress("AssignedValueIsNeverRead")
                     isSupportingForceHidden = false
                     scope.launch { navigator.navigateTo(SupportingPaneScaffoldRole.Supporting) }
                 },
@@ -86,12 +87,12 @@ fun SortVizAndInfoScaffold(
                 onBack = { scope.launch { navigator.navigateBack() } },
                 onHideExtra = {
                     if (isMainVisible) {
+                        @Suppress("AssignedValueIsNeverRead")
                         isSupportingForceHidden = true
                     } else {
                         scope.launch { navigator.navigateBack() }
                     }
-                },
-                isBackVisible = !isMainVisible
+                }
             )
         }
     )

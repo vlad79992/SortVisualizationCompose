@@ -10,7 +10,7 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
 
 @Suppress("CheckReturnValue")
-public val redo: ImageVector
+val redo: ImageVector
   get() {
     if (_redo != null) {
       return _redo!!
@@ -33,7 +33,7 @@ public val redo: ImageVector
             strokeLineCap = StrokeCap.Butt,
             strokeLineJoin = StrokeJoin.Bevel,
             strokeLineMiter = 1f,
-            pathFillType = PathFillType.Companion.NonZero,
+            pathFillType = PathFillType.NonZero,
           ) {
             moveTo(9.9f, 19f)
             quadTo(7.48f, 19f, 5.74f, 17.43f)
@@ -62,4 +62,5 @@ public val redo: ImageVector
     return _redo!!
   }
 
+@Suppress("ObjectPropertyName")
 private var _redo: ImageVector? = null

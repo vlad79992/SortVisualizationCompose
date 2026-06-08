@@ -7,5 +7,6 @@ package com.moshk.sortviz.core
 data class SortStep<S> (
     val state: S,
     val comparingIndices: Pair<SortIndex, SortIndex>? = null,
-    val selectedIndices: Set<SortIndex> = emptySet()
+    val selectedIndices: Set<SortIndex> = emptySet(),
+    val swappingIndices: Set<Pair<SortIndex, SortIndex>> = emptySet()
 )

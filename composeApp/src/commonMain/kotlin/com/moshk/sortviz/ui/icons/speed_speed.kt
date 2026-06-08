@@ -10,7 +10,7 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
 
 @Suppress("CheckReturnValue")
-public val speed: ImageVector
+val speed: ImageVector
   get() {
     if (_speed != null) {
       return _speed!!
@@ -33,7 +33,7 @@ public val speed: ImageVector
             strokeLineCap = StrokeCap.Butt,
             strokeLineJoin = StrokeJoin.Bevel,
             strokeLineMiter = 1f,
-            pathFillType = PathFillType.Companion.NonZero,
+            pathFillType = PathFillType.NonZero,
           ) {
             moveTo(12f, 16.09f)
             quadToRelative(0.95f, -0.01f, 1.4f, -0.69f)
@@ -83,4 +83,5 @@ public val speed: ImageVector
     return _speed!!
   }
 
+@Suppress("ObjectPropertyName")
 private var _speed: ImageVector? = null

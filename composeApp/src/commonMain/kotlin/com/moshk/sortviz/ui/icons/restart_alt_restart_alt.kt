@@ -10,7 +10,7 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
 
 @Suppress("CheckReturnValue")
-public val restart_alt: ImageVector
+val restart_alt: ImageVector
   get() {
     if (_restart_alt != null) {
       return _restart_alt!!
@@ -33,7 +33,7 @@ public val restart_alt: ImageVector
             strokeLineCap = StrokeCap.Butt,
             strokeLineJoin = StrokeJoin.Bevel,
             strokeLineMiter = 1f,
-            pathFillType = PathFillType.Companion.NonZero,
+            pathFillType = PathFillType.NonZero,
           ) {
             moveTo(11f, 20.95f)
             quadTo(7.98f, 20.58f, 5.99f, 18.31f)
@@ -72,4 +72,5 @@ public val restart_alt: ImageVector
     return _restart_alt!!
   }
 
+@Suppress("ObjectPropertyName")
 private var _restart_alt: ImageVector? = null

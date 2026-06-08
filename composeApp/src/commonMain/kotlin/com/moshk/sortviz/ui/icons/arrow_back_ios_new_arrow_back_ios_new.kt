@@ -10,7 +10,7 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
 
 @Suppress("CheckReturnValue")
-public val arrow_back: ImageVector
+val arrow_back: ImageVector
   get() {
     if (_arrow_back != null) {
       return _arrow_back!!
@@ -33,7 +33,7 @@ public val arrow_back: ImageVector
             strokeLineCap = StrokeCap.Butt,
             strokeLineJoin = StrokeJoin.Bevel,
             strokeLineMiter = 1f,
-            pathFillType = PathFillType.Companion.NonZero,
+            pathFillType = PathFillType.NonZero,
           ) {
             moveTo(16f, 22f)
             lineTo(6f, 12f)
@@ -49,4 +49,5 @@ public val arrow_back: ImageVector
     return _arrow_back!!
   }
 
+@Suppress("ObjectPropertyName")
 private var _arrow_back: ImageVector? = null

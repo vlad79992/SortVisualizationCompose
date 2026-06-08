@@ -5,12 +5,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import com.moshk.scheduleapp.ui.theme.Pink40
-import com.moshk.scheduleapp.ui.theme.Pink80
-import com.moshk.scheduleapp.ui.theme.Purple40
-import com.moshk.scheduleapp.ui.theme.Purple80
-import com.moshk.scheduleapp.ui.theme.PurpleGrey40
-import com.moshk.scheduleapp.ui.theme.PurpleGrey80
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,

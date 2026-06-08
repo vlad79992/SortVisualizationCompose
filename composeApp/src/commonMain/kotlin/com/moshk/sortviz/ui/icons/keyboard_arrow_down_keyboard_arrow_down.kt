@@ -1,4 +1,4 @@
-package com.example.test
+package com.moshk.sortviz.ui.icons
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathFillType
@@ -10,7 +10,7 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
 
 @Suppress("CheckReturnValue")
-public val keyboard_arrow_down: ImageVector
+val keyboard_arrow_down: ImageVector
   get() {
     if (_keyboard_arrow_down != null) {
       return _keyboard_arrow_down!!
@@ -33,7 +33,7 @@ public val keyboard_arrow_down: ImageVector
             strokeLineCap = StrokeCap.Butt,
             strokeLineJoin = StrokeJoin.Bevel,
             strokeLineMiter = 1f,
-            pathFillType = PathFillType.Companion.NonZero,
+            pathFillType = PathFillType.NonZero,
           ) {
             moveTo(12f, 15.4f)
             lineTo(6f, 9.4f)
@@ -49,4 +49,5 @@ public val keyboard_arrow_down: ImageVector
     return _keyboard_arrow_down!!
   }
 
+@Suppress("ObjectPropertyName")
 private var _keyboard_arrow_down: ImageVector? = null

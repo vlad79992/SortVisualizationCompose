@@ -10,7 +10,7 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
 
 @Suppress("CheckReturnValue")
-public val visibility_off: ImageVector
+val visibility_off: ImageVector
   get() {
     if (_visibility_off != null) {
       return _visibility_off!!
@@ -33,7 +33,7 @@ public val visibility_off: ImageVector
             strokeLineCap = StrokeCap.Butt,
             strokeLineJoin = StrokeJoin.Bevel,
             strokeLineMiter = 1f,
-            pathFillType = PathFillType.Companion.NonZero,
+            pathFillType = PathFillType.NonZero,
           ) {
             moveTo(16.1f, 13.3f)
             lineTo(14.65f, 11.85f)
@@ -102,4 +102,5 @@ public val visibility_off: ImageVector
     return _visibility_off!!
   }
 
+@Suppress("ObjectPropertyName")
 private var _visibility_off: ImageVector? = null

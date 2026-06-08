@@ -10,7 +10,7 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
 
 @Suppress("CheckReturnValue")
-public val pause: ImageVector
+val pause: ImageVector
   get() {
     if (_pause != null) {
       return _pause!!
@@ -33,7 +33,7 @@ public val pause: ImageVector
             strokeLineCap = StrokeCap.Butt,
             strokeLineJoin = StrokeJoin.Bevel,
             strokeLineMiter = 1f,
-            pathFillType = PathFillType.Companion.NonZero,
+            pathFillType = PathFillType.NonZero,
           ) {
             moveTo(13f, 19f)
             verticalLineTo(5f)
@@ -73,4 +73,5 @@ public val pause: ImageVector
     return _pause!!
   }
 
+@Suppress("ObjectPropertyName")
 private var _pause: ImageVector? = null

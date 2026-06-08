@@ -10,7 +10,7 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
 
 @Suppress("CheckReturnValue")
-public val undo: ImageVector
+val undo: ImageVector
   get() {
     if (_undo != null) {
       return _undo!!
@@ -33,7 +33,7 @@ public val undo: ImageVector
             strokeLineCap = StrokeCap.Butt,
             strokeLineJoin = StrokeJoin.Bevel,
             strokeLineMiter = 1f,
-            pathFillType = PathFillType.Companion.NonZero,
+            pathFillType = PathFillType.NonZero,
           ) {
             moveTo(7f, 19f)
             verticalLineTo(17f)
@@ -62,4 +62,5 @@ public val undo: ImageVector
     return _undo!!
   }
 
+@Suppress("ObjectPropertyName")
 private var _undo: ImageVector? = null
