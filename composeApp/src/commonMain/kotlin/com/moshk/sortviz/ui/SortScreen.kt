@@ -36,7 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.moshk.sortviz.core.sortAlgorithms.BubbleSortAlgorithm
+import com.moshk.sortviz.core.SortingAlgorithm
 import com.moshk.sortviz.core.sortAlgorithms.MergeSortAlgorithm
 import com.moshk.sortviz.ui.icons.arrow_back
 import com.moshk.sortviz.ui.theme.SortAppTheme
@@ -45,6 +45,7 @@ import kotlinx.coroutines.delay
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun ThreePaneScaffoldPaneScope.SortScreenPane(
+    algorithm: SortingAlgorithm<*>, // Принимаем алгоритм
     shouldShowExtraButton: Boolean,
     onShowExtra: () -> Unit,
     onBack: () -> Unit,
@@ -54,11 +55,12 @@ fun ThreePaneScaffoldPaneScope.SortScreenPane(
     AnimatedPane(modifier = modifier) {
         Surface(modifier = Modifier.fillMaxSize()) {
             SortScreen(
-                shouldShowExtraButton,
-                onShowExtra,
-                onBack,
-                isBackVisible,
-                modifier
+                algorithm = algorithm,
+                shouldShowExtraButton = shouldShowExtraButton,
+                onShowExtra = onShowExtra,
+                onBack = onBack,
+                isBackVisible = isBackVisible,
+                modifier = modifier
             )
         }
     }
@@ -67,6 +69,7 @@ fun ThreePaneScaffoldPaneScope.SortScreenPane(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SortScreen(
+    algorithm: SortingAlgorithm<*>, // Принимаем алгоритм
     shouldShowExtraButton: Boolean,
     onShowExtra: () -> Unit,
     onBack: () -> Unit,
@@ -74,11 +77,12 @@ fun SortScreen(
     modifier: Modifier = Modifier
 ) {
     val arrayLength = 10
-    var initialData = List(arrayLength) { i -> i + 1}.shuffled()
-    val algorithm = remember {
-        MergeSortAlgorithm().apply {
-            initialize(initialData)
-        }
+    var initialData = remember { List(arrayLength) { i -> i + 1}.shuffled() }
+
+    // Инициализируем алгоритм при его смене или первом появлении
+    LaunchedEffect(algorithm) {
+        @Suppress("UNCHECKED_CAST")
+        (algorithm as SortingAlgorithm<Any>).initialize(initialData)
     }
 
     var isPlaying by remember { mutableStateOf(false) }
@@ -147,9 +151,7 @@ fun SortScreen(
                     )
                 }
             }
-
         }
-
 
         Column(
             Modifier.fillMaxSize(),
@@ -158,7 +160,6 @@ fun SortScreen(
         ) {
             algorithm.RenderVisualizer(
                 modifier = Modifier
-                    //.background(Color.Magenta)
                     .fillMaxWidth()
                     .weight(1f),
                 animationSpec = animationSpec
@@ -185,8 +186,10 @@ fun SortScreen(
                 },
                 onResetClick = {
                     isPlaying = false
-                    initialData = initialData.shuffled()
-                    algorithm.reset(initialData)
+                    initialData = List(arrayLength) { i -> i + 1 }.shuffled()
+                    // Сбрасываем алгоритм с новыми данными
+                    @Suppress("UNCHECKED_CAST")
+                    (algorithm as SortingAlgorithm<Any>).reset(initialData)
                 },
                 canGoBack = algorithm.canGoBack,
                 canGoForward = algorithm.canGoForward
@@ -200,11 +203,12 @@ fun SortScreen(
 fun PreviewSortScreenLight() {
     Surface(modifier = Modifier.fillMaxSize()) {
         SortScreen(
-            true,
-            {},
-            {},
-            true,
-            Modifier
+            algorithm = MergeSortAlgorithm(), // Для превью используем MergeSort
+            shouldShowExtraButton = true,
+            onShowExtra = {},
+            onBack = {},
+            isBackVisible = true,
+            modifier = Modifier
         )
     }
 }

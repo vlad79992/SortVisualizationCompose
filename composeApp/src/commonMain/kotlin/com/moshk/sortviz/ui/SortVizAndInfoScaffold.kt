@@ -29,13 +29,16 @@ import androidx.navigationevent.compose.LocalNavigationEventDispatcherOwner
 import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
 import androidx.window.core.layout.WindowSizeClass
+import com.moshk.sortviz.core.SortingAlgorithm
+import com.moshk.sortviz.core.sortAlgorithms.MergeSortAlgorithm
 import com.moshk.sortviz.ui.theme.SortAppTheme
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun SortVizAndInfoScaffold(
-    parentNavigator: ThreePaneScaffoldNavigator<Any>,
+    parentNavigator: ThreePaneScaffoldNavigator<SortingAlgorithm<*>>,
+    algorithm: SortingAlgorithm<*>, // Принимаем алгоритм
     modifier: Modifier = Modifier
 ) {
     val navigator = rememberSupportingPaneScaffoldNavigator()
@@ -66,6 +69,7 @@ fun SortVizAndInfoScaffold(
         },
         mainPane = {
             SortScreenPane(
+                algorithm = algorithm, // Пробрасываем алгоритм
                 onShowExtra = {
                     @Suppress("AssignedValueIsNeverRead")
                     isSupportingForceHidden = false
@@ -111,13 +115,14 @@ fun PreviewSortVizAndInfoScaffoldLight() {
     ) {
         Surface(modifier = Modifier.fillMaxSize()) {
             SortVizAndInfoScaffold(
-                parentNavigator = rememberListDetailPaneScaffoldNavigator(
+                parentNavigator = rememberListDetailPaneScaffoldNavigator<SortingAlgorithm<*>>(
                     scaffoldDirective = PaneScaffoldDirective.Default.copy(
                         maxHorizontalPartitions = if (
                             currentWindowAdaptiveInfo().windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)
                         ) 3 else 2
                     )
-                )
+                ),
+                algorithm = MergeSortAlgorithm() // Для превью используем MergeSort
             )
         }
     }

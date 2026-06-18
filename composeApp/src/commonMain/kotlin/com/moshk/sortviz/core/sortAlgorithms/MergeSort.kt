@@ -4,6 +4,7 @@ import com.moshk.sortviz.core.SortIndex
 import com.moshk.sortviz.core.SortStep
 import com.moshk.sortviz.core.SortingAlgorithm
 
+@com.moshk.sortviz.core.annotations.SortingAlgorithm
 class MergeSortAlgorithm : SortingAlgorithm<Map<Int, Array<Int>>>() {
     override val name = "Merge Sort (Сортировка слиянием)"
     override val description = "Эффективный алгоритм сортировки со сложностью O(n log n). " +

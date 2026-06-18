@@ -8,6 +8,8 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
+    alias(libs.plugins.ksp)
+
 }
 
 kotlin {
@@ -65,6 +67,9 @@ kotlin {
 
             implementation(libs.jetbrains.navigationevent.compose)
         }
+        commonMain {
+            kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
+        }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
@@ -102,8 +107,13 @@ android {
     }
 }
 
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")  // опционально
+}
+
 dependencies {
     debugImplementation(libs.compose.uiTooling)
+    add("kspCommonMainMetadata", project(":processor"))
 }
 
 compose.desktop {

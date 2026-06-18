@@ -19,6 +19,7 @@ import androidx.navigationevent.compose.LocalNavigationEventDispatcherOwner
 import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
 import androidx.window.core.layout.WindowSizeClass
+import com.moshk.sortviz.core.SortingAlgorithm
 import com.moshk.sortviz.ui.theme.SortAppTheme
 import kotlinx.coroutines.launch
 
@@ -26,7 +27,9 @@ import kotlinx.coroutines.launch
 @Composable
 fun ListAndSortScaffold() {
     val scope = rememberCoroutineScope()
-    val navigator = rememberListDetailPaneScaffoldNavigator(
+
+    // Указываем тип контента, который будет передаваться при навигации
+    val navigator = rememberListDetailPaneScaffoldNavigator<SortingAlgorithm<*>>(
         scaffoldDirective = PaneScaffoldDirective.Default.copy(
             maxHorizontalPartitions = if (
                 currentWindowAdaptiveInfo().windowSizeClass.isWidthAtLeastBreakpoint(
@@ -47,15 +50,23 @@ fun ListAndSortScaffold() {
         value = navigator.scaffoldValue,
         listPane = {
             SortListPane(
-                onItemSelected = { scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Detail) } }
+                onItemSelected = { algorithm ->
+                    // Передаем выбранный алгоритм в Detail Pane
+                    scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, algorithm) }
+                }
             )
         },
         detailPane = {
             AnimatedPane(modifier = Modifier.fillMaxSize()) {
-                SortVizAndInfoScaffold(
-                    modifier = Modifier.fillMaxSize(),
-                    parentNavigator = navigator
-                )
+                // Получаем алгоритм из навигатора
+                val algorithm = navigator.currentDestination?.contentKey
+                if (algorithm != null) {
+                    SortVizAndInfoScaffold(
+                        modifier = Modifier.fillMaxSize(),
+                        parentNavigator = navigator,
+                        algorithm = algorithm
+                    )
+                }
             }
         }
     )

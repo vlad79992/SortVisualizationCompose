@@ -4,6 +4,7 @@ import com.moshk.sortviz.core.SortIndex
 import com.moshk.sortviz.core.SortStep
 import com.moshk.sortviz.core.SortingAlgorithm
 
+@com.moshk.sortviz.core.annotations.SortingAlgorithm
 class BubbleSortAlgorithm : SortingAlgorithm<Array<Int>>() {
     override val name = "Bubble Sort"
     override val description = "Простой алгоритм сортировки. Многократно проходит по массиву, сравнивая соседние элементы и меняя их местами, если они стоят в неправильном порядке. После каждого прохода наибольший элемент «всплывает» в конец."

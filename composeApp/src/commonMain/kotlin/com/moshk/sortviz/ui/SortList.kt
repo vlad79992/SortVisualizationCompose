@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -18,19 +19,21 @@ import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.ThreePaneScaffoldPaneScope
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.moshk.generated.algorithmFactories
+import com.moshk.sortviz.core.SortingAlgorithm
 import com.moshk.sortviz.ui.theme.SortAppTheme
-
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun ThreePaneScaffoldPaneScope.SortListPane(
-    onItemSelected: () -> Unit,
+    onItemSelected: (SortingAlgorithm<*>) -> Unit,
     modifier: Modifier = Modifier
 ) {
     AnimatedPane(modifier = modifier) {
@@ -45,9 +48,14 @@ fun ThreePaneScaffoldPaneScope.SortListPane(
 
 @Composable
 fun SortList(
-    onItemSelected: () -> Unit,
+    onItemSelected: (SortingAlgorithm<*>) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Создаём экземпляры всех алгоритмов один раз
+    val algorithms = remember {
+        algorithmFactories.map { factory -> factory() }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -62,10 +70,13 @@ fun SortList(
             modifier = Modifier.padding(16.dp),
             textAlign = TextAlign.Start
         )
-        LazyColumn (
+        LazyColumn(
             modifier = Modifier.fillMaxSize()
         ) {
-            items(10) { index ->
+            items(
+                items = algorithms,
+                key = { it::class.qualifiedName ?: it.name }
+            ) { algorithm ->
                 Card(
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -74,7 +85,7 @@ fun SortList(
                         .height(100.dp)
                         .padding(8.dp, 4.dp)
                         .fillMaxWidth(1f),
-                    onClick = { onItemSelected() }
+                    onClick = { onItemSelected(algorithm) }
                 ) {
                     Box(
                         modifier = Modifier
@@ -83,7 +94,7 @@ fun SortList(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "sort $index",
+                            text = algorithm.name,
                             modifier = Modifier,
                             textAlign = TextAlign.Justify,
                             fontWeight = FontWeight.Bold,
@@ -95,7 +106,6 @@ fun SortList(
         }
     }
 }
-
 
 @Composable
 @Preview

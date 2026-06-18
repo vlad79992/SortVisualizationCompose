@@ -61,7 +61,7 @@ fun SortInfo(
             .padding(8.dp)
             .safeContentPadding()
     ) {
-        Row (Modifier.height(64.dp)) {
+        Row(Modifier.height(64.dp)) {
             if (!isBackVisible) {
                 Button(
                     onClick = onBack,
@@ -87,7 +87,10 @@ fun SortInfo(
 
         Column(modifier = Modifier.padding(32.dp)) {
             Text("Дополнительная информация", style = MaterialTheme.typography.headlineSmall)
-            Text("Здесь отображаются детали, настройки или контекстные данные.", style = MaterialTheme.typography.bodyMedium)
+            Text(
+                "Здесь отображаются детали, настройки или контекстные данные.",
+                style = MaterialTheme.typography.bodyMedium
+            )
         }
     }
 }
