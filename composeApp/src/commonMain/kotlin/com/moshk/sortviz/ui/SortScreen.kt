@@ -37,6 +37,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.moshk.sortviz.core.sortAlgorithms.BubbleSortAlgorithm
+import com.moshk.sortviz.core.sortAlgorithms.MergeSortAlgorithm
 import com.moshk.sortviz.ui.icons.arrow_back
 import com.moshk.sortviz.ui.theme.SortAppTheme
 import kotlinx.coroutines.delay
@@ -75,7 +76,7 @@ fun SortScreen(
     val arrayLength = 10
     var initialData = List(arrayLength) { i -> i + 1}.shuffled()
     val algorithm = remember {
-        BubbleSortAlgorithm().apply {
+        MergeSortAlgorithm().apply {
             initialize(initialData)
         }
     }

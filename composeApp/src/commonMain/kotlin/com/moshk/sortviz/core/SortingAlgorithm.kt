@@ -9,9 +9,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.moshk.sortviz.ui.ArrayArrow
+import com.moshk.sortviz.ui.ArrayState
 import com.moshk.sortviz.ui.ArrayVisualizer
 import kotlin.also
-import kotlin.collections.forEach
 
 abstract class SortingAlgorithm<S : Any>(
     open val customVisualizer: (@Composable (step: SortStep<S>) -> Unit)? = null,
@@ -75,22 +76,28 @@ abstract class SortingAlgorithm<S : Any>(
                 val step = historyStack.removeLast()
                 forwardStack.addLast(step)
 
-                @Suppress("UNCHECKED_CAST")
+                val stateClone: S = when (val st = step.state) {
+                    is Array<*> -> {
+                        @Suppress("UNCHECKED_CAST")
+                        ((st as Array<Int>).clone().apply {
+                            step.swappingIndices.forEach { (a, b) ->
+                                if (a is SortIndex.Single && b is SortIndex.Single) {
+                                    val i = a.index
+                                    val j = b.index
+                                    this[i] = this[j].also { this[j] = this[i] }
+                                }
+                            }
+                        }) as S
+                    }
+                    else -> step.state // Для сложных состояний (Map/List) возвращаем оригинал
+                }
+
                 currentStep = step.copy(
                     swappingIndices = step.swappingIndices.map { (first, second) -> second to first }.toSet(),
-                    state = ((step.state as Array<Int>).clone().apply {
-                        step.swappingIndices.forEach { (a, b) ->
-                            if (a is SortIndex.Single && b is SortIndex.Single) {
-                                val i = a.index
-                                val j = b.index
-                                this[i] = this[j].also { this[j] = this[i] }
-                            }
-                        }
-                    }) as S,
+                    state = stateClone,
                     selectedIndices = step.selectedIndices,
                     comparingIndices = step.comparingIndices
                 )
-
                 updateNavigationState()
                 true
             }
@@ -106,12 +113,9 @@ abstract class SortingAlgorithm<S : Any>(
     }
 
     @Suppress("unused")
-    fun reset() {
-        initialData?.let { initialize(it) }
-    }
-    fun reset(initialData: List<Int>) {
-        initialize(initialData)
-    }
+    fun reset() { initialData?.let { initialize(it) } }
+
+    fun reset(initialData: List<Int>) { initialize(initialData) }
 
     @OptIn(ExperimentalMaterial3ExpressiveApi::class)
     @Composable
@@ -125,30 +129,56 @@ abstract class SortingAlgorithm<S : Any>(
             if (customVisualizer != null) {
                 customVisualizer!!(step)
             } else {
-                @Suppress("UNCHECKED_CAST")
-                val array = step.state as? Array<Int>
-                    ?: error("Default visualizer requires S == Array<Int>.")
+                val stateMap = step.state as? Map<Int, Array<Int>>
+                val stateList = step.state as? List<Array<Int>>
+                val singleArray = step.state as? Array<Int>
 
-                val stdComparing = when (val cmp = step.comparingIndices) {
-                    null -> null
-                    else -> when (cmp.first) {
-                        is SortIndex.Single -> ((cmp.first as SortIndex.Single).index to (cmp.second as SortIndex.Single).index)
-                        is SortIndex.Composite -> null
+                val arrayStates = mutableListOf<ArrayState>()
+                val arrayArrows = mutableListOf<ArrayArrow>()
+
+                when {
+                    stateMap != null -> {
+                        stateMap.forEach { (bufferId, array) ->
+                            arrayStates.add(
+                                ArrayState(
+                                    array = array, id = bufferId.toString(),
+                                    comparing = extractComparing(step.comparingIndices, bufferId),
+                                    selected = extractSelected(step.selectedIndices, bufferId),
+                                    swapping = extractSwapping(step.swappingIndices, bufferId)
+                                )
+                            )
+                        }
+                        arrayArrows.addAll(extractArrows(step.comparingIndices, step.swappingIndices))
                     }
+                    stateList != null -> {
+                        stateList.forEachIndexed { index, array ->
+                            arrayStates.add(
+                                ArrayState(
+                                    array = array, id = index.toString(),
+                                    comparing = extractComparing(step.comparingIndices, index),
+                                    selected = extractSelected(step.selectedIndices, index),
+                                    swapping = extractSwapping(step.swappingIndices, index)
+                                )
+                            )
+                        }
+                        arrayArrows.addAll(extractArrows(step.comparingIndices, step.swappingIndices))
+                    }
+                    singleArray != null -> {
+                        arrayStates.add(
+                            ArrayState(
+                                array = singleArray, id = "0",
+                                comparing = extractSingleComparing(step.comparingIndices),
+                                selected = step.selectedIndices.mapNotNull { (it as? SortIndex.Single)?.index }.toSet(),
+                                swapping = extractSingleSwapping(step.swappingIndices)
+                            )
+                        )
+                    }
+                    else -> error("Default visualizer requires S == Array<Int>, List<Array<Int>>, or Map<Int, Array<Int>>.")
                 }
 
-                val stdSwapping = step.swappingIndices.mapNotNull { swp ->
-                    when (swp.first) {
-                        is SortIndex.Single -> ((swp.first as SortIndex.Single).index to (swp.second as SortIndex.Single).index)
-                        is SortIndex.Composite -> null
-                    }
-                }.toSet()
-
                 ArrayVisualizer(
-                    array = array,
-                    comparing = stdComparing,
-                    selected = step.selectedIndices.mapNotNull { (it as? SortIndex.Single)?.index }.toSet(),
-                    swapping = stdSwapping,
+                    arrays = arrayStates,
+                    arrows = arrayArrows,
                     animationSpec = animationSpec,
                     modifier = modifier
                 )
@@ -157,11 +187,8 @@ abstract class SortingAlgorithm<S : Any>(
             val initial = initialData ?: return
             val array = initial.toTypedArray()
             ArrayVisualizer(
-                array = array,
-                comparing = null,
-                selected = emptySet(),
-                animationSpec = animationSpec,
-                modifier = modifier
+                array = array, comparing = null, selected = emptySet(),
+                animationSpec = animationSpec, modifier = modifier
             )
         }
     }
@@ -170,5 +197,83 @@ abstract class SortingAlgorithm<S : Any>(
     @Composable
     fun RenderDescription() {
         if (customDescription != null) customDescription!!() else Text(description)
+    }
+
+    // --- Вспомогательные методы для извлечения состояний из SortIndex ---
+
+    private fun extractComparing(comparingIndices: Pair<SortIndex, SortIndex>?, bufferId: Int): Pair<Int, Int>? {
+        if (comparingIndices == null) return null
+        val (first, second) = comparingIndices
+        val f = when (first) {
+            is SortIndex.Single -> if (bufferId == 0) first.index else null
+            is SortIndex.Composite -> if (first.bufferId == bufferId) first.index else null
+        }
+        val s = when (second) {
+            is SortIndex.Single -> if (bufferId == 0) second.index else null
+            is SortIndex.Composite -> if (second.bufferId == bufferId) second.index else null
+        }
+        return if (f != null && s != null) f to s else null
+    }
+
+    private fun extractSelected(selectedIndices: Set<SortIndex>, bufferId: Int): Set<Int> {
+        return selectedIndices.mapNotNull { idx ->
+            when (idx) {
+                is SortIndex.Single -> if (bufferId == 0) idx.index else null
+                is SortIndex.Composite -> if (idx.bufferId == bufferId) idx.index else null
+            }
+        }.toSet()
+    }
+
+    private fun extractSwapping(swappingIndices: Set<Pair<SortIndex, SortIndex>>, bufferId: Int): Set<Pair<Int, Int>> {
+        return swappingIndices.mapNotNull { pair ->
+            val (first, second) = pair
+            val f = when (first) {
+                is SortIndex.Single -> if (bufferId == 0) first.index else null
+                is SortIndex.Composite -> if (first.bufferId == bufferId) first.index else null
+            }
+            val s = when (second) {
+                is SortIndex.Single -> if (bufferId == 0) second.index else null
+                is SortIndex.Composite -> if (second.bufferId == bufferId) second.index else null
+            }
+            if (f != null && s != null) f to s else null
+        }.toSet()
+    }
+
+    private fun extractArrows(comparingIndices: Pair<SortIndex, SortIndex>?, swappingIndices: Set<Pair<SortIndex, SortIndex>>): List<ArrayArrow> {
+        val arrows = mutableListOf<ArrayArrow>()
+
+        comparingIndices?.let { cmp ->
+            val fId = when (val f = cmp.first) { is SortIndex.Single -> "0"; is SortIndex.Composite -> f.bufferId.toString() }
+            val fIdx = when (val f = cmp.first) { is SortIndex.Single -> f.index; is SortIndex.Composite -> f.index }
+            val sId = when (val s = cmp.second) { is SortIndex.Single -> "0"; is SortIndex.Composite -> s.bufferId.toString() }
+            val sIdx = when (val s = cmp.second) { is SortIndex.Single -> s.index; is SortIndex.Composite -> s.index }
+            if (fId != sId) arrows.add(ArrayArrow(fId, fIdx, sId, sIdx))
+        }
+
+        swappingIndices.forEach { pair ->
+            val (first, second) = pair
+            val fId = when (first) { is SortIndex.Single -> "0"; is SortIndex.Composite -> first.bufferId.toString() }
+            val fIdx = when (first) { is SortIndex.Single -> first.index; is SortIndex.Composite -> first.index }
+            val sId = when (second) { is SortIndex.Single -> "0"; is SortIndex.Composite -> second.bufferId.toString() }
+            val sIdx = when (second) { is SortIndex.Single -> second.index; is SortIndex.Composite -> second.index }
+            if (fId != sId) arrows.add(ArrayArrow(fId, fIdx, sId, sIdx))
+        }
+
+        return arrows
+    }
+
+    private fun extractSingleComparing(comparingIndices: Pair<SortIndex, SortIndex>?): Pair<Int, Int>? {
+        if (comparingIndices == null) return null
+        val f = (comparingIndices.first as? SortIndex.Single)?.index ?: return null
+        val s = (comparingIndices.second as? SortIndex.Single)?.index ?: return null
+        return f to s
+    }
+
+    private fun extractSingleSwapping(swappingIndices: Set<Pair<SortIndex, SortIndex>>): Set<Pair<Int, Int>> {
+        return swappingIndices.mapNotNull { pair ->
+            val f = (pair.first as? SortIndex.Single)?.index ?: return@mapNotNull null
+            val s = (pair.second as? SortIndex.Single)?.index ?: return@mapNotNull null
+            f to s
+        }.toSet()
     }
 }
