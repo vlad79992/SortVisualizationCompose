@@ -34,11 +34,12 @@ abstract class SortingAlgorithm<S : Any>(
 
     private fun updateNavigationState() {
         canGoBack = historyStack.isNotEmpty()
-        canGoForward = stepIterator?.hasNext() == true
+        canGoForward = forwardStack.isNotEmpty() || stepIterator?.hasNext() == true
     }
 
     private var stepIterator: Iterator<SortStep<S>>? = null
-    private var initialData: List<Int>? = null
+    var initialData by mutableStateOf<List<Int>?>(null)
+        private set
 
     abstract fun generateSteps(initialData: List<Int>): Sequence<SortStep<S>>
 

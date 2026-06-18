@@ -14,9 +14,12 @@ class MergeSortAlgorithm : SortingAlgorithm<Map<Int, Array<Int>>>() {
 
     private lateinit var fullArray: Array<Int>
 
-    override fun generateSteps(initialData: List<Int>): Sequence<SortStep<Map<Int, Array<Int>>>> {
+    override fun generateSteps(initialData: List<Int>): Sequence<SortStep<Map<Int, Array<Int>>>> = sequence {
         fullArray = initialData.toTypedArray()
-        return mergeSortSteps(0, fullArray.size - 1) + finalStep()
+        
+        yieldAll(mergeSortSteps(0, fullArray.size - 1))
+
+        yield(finalStep())
     }
 
     private fun mergeSortSteps(
